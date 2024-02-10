@@ -1,5 +1,6 @@
 # Generate basic 2x2 ribbed, rolled-brim toque pattern
-import garment as gar
+import garment as g
+import measurement as m
 import math
 
 #Define 4cm gauge of knitting
@@ -22,10 +23,10 @@ size_chart = [ #(circumference, length)
 garments = []
 for c, l in size_chart:
     measurements = [
-        gar.Measurement("head_circ", True, c, colGauge, rowGauge, [4], rounding='error'),
-        gar.Measurement("length", False, l, colGauge, rowGauge, rounding='error'),
+        m.Measurement("head_circ", True, c, colGauge, rowGauge, [4], rounding='error'),
+        m.Measurement("length", False, l, colGauge, rowGauge, rounding='error'),
     ]
-    garments.append(gar.Garment(rowGauge, colGauge, measurements))
+    garments.append(g.Garment(rowGauge, colGauge, measurements))
 
 #Function to write pattern for crown of hat
 def build_crown(circ_stitches):
