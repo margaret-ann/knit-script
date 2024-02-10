@@ -7,6 +7,7 @@ class Garment:
         self.rowGauge = rowGauge #1in gauge for now
         self.colGauge = colGauge #1in gauge for now
         self.measList = measList #data structure to hold Measurement objects
+        self.pattern = []
 
     def getGauge(self):
         """ Return stitch size of Measurement object """
@@ -20,6 +21,14 @@ class Garment:
         """ Return column gauge """
         return self.colGauge
 
+    def addPattern(self, newText):
+        """ Append list of new lines to text pattern """
+        self.pattern += newText
+
+    def getPattern(self):
+        """ Return list of lines in text pattern """
+        return self.pattern
+    
     def setGauge(self, row, col):
         """ Set row & column gauge of garment """
         self.rowGauge = row
@@ -45,26 +54,26 @@ class Garment:
     def printTargetMeas(self):
         """ Print out all target measurement information for Garment """
         for each in self.measList:
-            print(f"{each.getName()}, {each.getTargetSizeIn()} inches, {each.getTargetStitches(self.getRowGauge(), self.getColGauge())} stitches")
+            print(f"{each.getName()}, {each.getTargetSizeIn()} inches, {each.getTargetStitches()} stitches")
         return self.measList
     
     def printActualMeas(self):
         """ Print out all actual measurement information for Garment """
         for each in self.measList:
-            print(f"{each.getName()}, {each.getActualSizeIn()} inches, {each.getActualStitches(self.getRowGauge(), self.getColGauge())} stitches")
+            print(f"{each.getName()}, {each.getActualSizeIn()} inches, {each.getActualStitches()} stitches")
         return self.measList
     
     def printSummary(self):
         """ Print summary of all design measurements """
         for each in self.measList:
-            print(f"{each.getName()}; Stitches {each.getTargetStitches(self.getRowGauge(), self.getColGauge())} -> {each.getActualStitches()};")
+            print(f"{each.getName()}; Stitches {each.getTargetStitches()} -> {each.getActualStitches()};")
         return self.measList
     
     def targetStitchesByName(self, searchName):
         """ Return the number of stitches in target Measurement by name """
         for each in self.measList:
             if searchName == each.getName():
-                return each.getTargetStitches(self.rowGauge, self.colGauge)
+                return each.getTargetStitches()
         return None
     
     def actualStitchesByName(self, searchName):
@@ -74,18 +83,18 @@ class Garment:
                 return each.getActualStitches()
         return None
     
-    def targetSizeByName(self, searchName):
+    def targetSizeByNameCm(self, searchName):
         """ Return the size in inches of target Measurement by name """
         for each in self.measList:
             if searchName == each.getName():
-                return each.getTargetSizeIn()
+                return each.target_cm
         return None
     
-    def actualSizeByName(self, searchName):
+    def actualSizeByNameCm(self, searchName):
         """ Return the size in inches of actual Measurement by name """
         for each in self.measList:
             if searchName == each.getName():
-                return each.getActualSizeIn()
+                return each.getActualCm()
         return None
     
     def calculateMeasurements(self, rowGauge, colGauge):
@@ -96,7 +105,7 @@ class Garment:
 # 'Measurement' class hierarchy
 class Measurement:
 
-    def __init__(self, name, isWidth, target_cm, colGauge_4cm, rowGauge_4cm, divBy=[1], isOdd=None):
+    def __init__(self, name, isWidth, target_cm, colGauge_4cm, rowGauge_4cm, divBy=[1], isOdd=None, rounding='error'):
         self.name = name
         self.isWidth = isWidth #true if width measurement, false if height
         self.target_cm = target_cm
@@ -104,6 +113,7 @@ class Measurement:
         self.rowGauge = rowGauge_4cm/4
         self.divBy = divBy #list of numbers that measurement must be divisible by
         self.isOdd = isOdd #true if measurement must by odd
+        self.rounding = rounding #'error', 'up', 'down'
         self.target_in = target_cm / 2.54
 
         #Calculate target stitches
@@ -139,8 +149,12 @@ class Measurement:
         return self.actualStitches
     
     def getActualCm(self):
-        """ Reutrn actual_cm variable """
+        """ Return actual_cm variable """
         return self.actual_cm
+    
+    def getName(self):
+        """ Return name variable """
+        return self.name
     
     def setActualStitches(self, newStitchCount):
         """ Set the actualStitches variable """
@@ -154,12 +168,8 @@ class Measurement:
         """ Return CSV summary of this measurement """
         return(f"{self.name}; {self.target_cm}; {self.target_in}; {self.targetStitches}; {self.actualStitches}; {self.actual_cm}; {self.actual_in}; {self.error}")
         
-    def calculateMeasurement(self, roundUp=True):
+    def calculateMeasurement(self):
         """ Calculate measurement that will meet requirements """
-
-        #If required, add 1 stitch to an even target
-        #if self.isOdd and stitch_num % 2 == 1:
-            #stitch_num = stitch_num + 1
 
         #Simplify divisibiliy list
         del_list = []
@@ -178,15 +188,34 @@ class Measurement:
             mult_num = each * mult_num
 
         #Rounding
-        # Case 1: all requirements met
+        roundUp = int(self.targetStitches + (mult_num - (self.targetStitches % mult_num)))
+        roundDown = int(self.targetStitches - (self.targetStitches % mult_num))  
+        
+        # Case 1: all requirements perfectly met
         if self.targetStitches % mult_num == 0:
             return int(self.targetStitches)
-        # Case 2: div num is larger than stitch target, need to round up
+        # Case 2: div num is larger than stitch target, need to round up to avoid zero stitch count
         elif mult_num > self.targetStitches:
             return int(mult_num)
-        # Case 3: div num is smaller than stitch target, want to round up
-        elif roundUp: #round up
-            return int(self.targetStitches + (mult_num - (self.targetStitches % mult_num)))
-        # Case 4: div num is smaler than stitch target, want to round down
+        # Case 3: div num is smaller than stitch target, choose to round up
+        elif self.rounding == 'up':
+            return roundUp
+        # Case 4: div num is smaler than stitch target, choose to round down
+        elif self.rounding == 'down':
+            return roundDown
+        # Case 5: round based on smallest error
         else:
-            return int(self.targetStitches - (self.targetStitches % mult_num))
+            if self.isWidth:
+                actual_cm_up = roundUp / self.colGauge
+                actual_cm_down = roundDown / self.colGauge
+            else:
+                actual_cm_up = roundUp / self.rowGauge
+                actual_cm_down = roundDown / self.rowGauge
+
+            errorUp = abs((actual_cm_up-self.target_cm)/self.target_cm)*100
+            errorDown = abs((actual_cm_down-self.target_cm)/self.target_cm)*100
+
+            if errorUp < errorDown:
+                return roundUp
+            else:
+                return roundDown
