@@ -31,7 +31,8 @@ for c, l in size_chart:
 #Function to write pattern for crown of hat
 def build_crown(circ_stitches):
     """ Return pattern text for the crown of the hat based on number of circumference stitches """
-    assert int(circ_stitches) % 4 == 0, 'Error: This pattern requires the CO to be divisible by 4'
+    assert int(circ_stitches) % 4 == 0 and int(circ_stitches) == circ_stitches, 'Error: This pattern requires the CO to be divisible by 4'
+    assert int(circ_stitches) >= 6, 'Error: This pattern requires the CO to be greater than 6'
     ptn_str = []
     dec1 = circ_stitches * (3/4) #P2tog, K2
     dec2 = dec1 * (2/3) #P, K2tog
@@ -44,12 +45,23 @@ def build_crown(circ_stitches):
     if dec3 % 3 == 0:
         dec4 = dec3 * (1/3) #K3tog
         ptn_str += [f"Decrease row 4: K3tog ({int(dec4)} stitches)"]
-    elif dec3 % 3 == 1:
-        ptn_str += [f"TBD"]
-    elif dec3 % 3 == 2:
-        ptn_str += [f"TBD"]
-    ptn_str += ["Cut yarn with 10cm tail. Use tapestry needle to thread tail through remaining stitches. Pull yarn tight & weave in ends."]
-
+    elif dec3 % 3 != 0:
+        if dec3 % 3 == 1:
+            dec4 = [3] * (int(dec3//3)-1)
+            dec4.insert(0, 2)
+            dec4.insert(math.ceil(len(dec4)/2), 2)
+        elif dec3 % 3 == 2:
+            dec4 = [3] * int(dec3//3)
+            dec4.insert(int(len(dec4)//2), 2)
+        dec4_str = "Decrease row 4: "
+        for i in range(len(dec4)):
+            dec4_str += f"K{dec4[i]}tog"
+            if i == len(dec4)-1:
+                break
+            dec4_str += ", "
+        dec4_str += f" ({len(dec4)} stitches)"
+        ptn_str += [dec4_str]
+    ptn_str += ["Cut yarn with 20cm tail. Use tapestry needle to thread tail through remaining stitches. Pull yarn tight & weave in ends."]
     return ptn_str
 
 #Generate pattern text & add to garment objects
