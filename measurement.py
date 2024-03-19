@@ -1,12 +1,13 @@
 # 'Measurement' class hierarchy
+# Represents one measurement within one size of a garment
 class Measurement:
 
-    def __init__(self, name, isWidth, target_cm, colGauge_4cm, rowGauge_4cm, divBy=[1], isOdd=None, rounding='error'):
+    def __init__(self, name, isWidth, target_cm, colGauge_10cm, rowGauge_10cm, divBy=[1], isOdd=None, rounding='error'):
         self.name = name
         self.isWidth = isWidth #true if width measurement, false if height
         self.target_cm = target_cm
-        self.colGauge = colGauge_4cm/4
-        self.rowGauge = rowGauge_4cm/4
+        self.colGauge = colGauge_10cm/10
+        self.rowGauge = rowGauge_10cm/10
         self.divBy = divBy #list of numbers that measurement must be divisible by
         self.isOdd = isOdd #true if measurement must by odd
         self.rounding = rounding #'error', 'up', 'down'

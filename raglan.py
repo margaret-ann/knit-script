@@ -1,5 +1,6 @@
 # Generate the most basic ribbed raglan pattern possible
-import garment as gar
+import garment as g
+import measurement as m
 import math
 
 #Define 4cm gauge of garment
