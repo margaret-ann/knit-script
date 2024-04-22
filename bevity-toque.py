@@ -1,36 +1,66 @@
-# Generate basic 2x2 ribbed, rolled-brim toque pattern
+# Brevity Toque Pattern
+# Basic 2x2 ribbed, rolled-brim hat
+
 import pattern as p
 import garment as g
 import measurement as m
 import document as doc
 import math
+import patternData as pd
 
-#User input of 10cm gauge
-#colGauge = int(input("Enter 10cm column gauge: "))
-#rowGauge = int(input("Enter 10cm row gauge: "))
-
-#10cm gauge of Malabrigo Worsted held double
+# Define 10cm gauge
 colGauge = 13
 rowGauge = 21
 
-#General pattern information
-yarnWeight = ""
-yarnType = "Malabrigo Worsted held double"
-needleSize = ""
-skillLevel = "beginner"
-
-#Target size chart
-size_names = ["Newborn", "3-6 Months", "6-12 Months", "Toddler", "Child", "Adult S", "Adult L"]
+#Target size chart in cm
+size_names = ["Premie", "Newborn", "3-6 Months", "6-12 Months", "Toddler", "Child", "Teen", "Adult S", "Adult M", "Adult L"]
 dim_names = ["circumference", "length"]
 size_chart = [
-    (35.5, 12.5),
-    (40.5, 15.5),
-    (45.5, 16.5),
-    (48, 17.5),
-    (51, 19.5),
-    (56, 25.5),
-    (61, 29),
+    (30, 11), #premie
+    (36, 15), #newborn
+    (43, 18), #3-6 mo
+    (46, 19), #6-12 mo
+    (48, 20), #toddler
+    (51, 22), #child
+    (53, 25), #teen
+    (56, 28), #adult S
+    (59, 28), #adult M
+    (62, 29), #adult L
 ]
+row1 = size_names.copy()
+row1.insert(0,"")
+row2 = [i[0] for i in size_chart]
+row2.insert(0,dim_names[0])
+row3 = [i[1] for i in size_chart]
+row3.insert(0,dim_names[1])
+sizeTable = [row1, row2, row3]
+
+# Initalize pattern metadata object
+pattern_data = pd.PatternData(
+    colGauge = colGauge,
+    rowGauge = rowGauge,
+    patternTitle = "Brevity Toque",
+    patternSubtitle = "A bulky, knit hat to fit heads of all sizes.",
+    yarnWeight = "worsted + worsted = bulky",
+    yarnType = "Malabrigo Worsted held double",
+    needleSize_mm = 6.5,
+    needleSize_US = 10.5,
+    skillLevel = "beginner",
+    patternIntro = ["""The classic 2x2 ribbed style hat has been a favorite of mine for years. It's
+        comfortable to wear and simple to knit. After much experimenting, I present to you the Brevity
+        Toque. Knit with Malabrigo Worsted held double, this hat is squishy and soft, while
+        producing a fabric thick enough to keep you warm.""",
+        """The heart of this pattern is for you to be able to make it for anyone that you love
+        of any size. See the sizing section for more information.""",
+        """If you are new to knitting, then welcome! This pattern is a great place to start for the adventurous beginner."""],
+    #patternSizing = [],
+    #patternNeedles = [],
+    #patternYarn = [],
+    #patternGauge = [],
+    #patternNotions = [],
+    #patternAbbrev = [],
+    patternSizeChart = sizeTable
+)
 
 #Create a garment object for each size
 garments = []
@@ -99,8 +129,11 @@ def build_crown(circ_stitches, hatPattern):
     return ptn_str
 
 #Generate pattern text & add to garment objects
-myPattern.appendPattern([f"CO {myPattern.formatDimension(myPattern.getStitchDimension('head_circ'))} stitches using the long-tail method"])
-myPattern.appendPattern([f"P2, K2 every round until hat measures {myPattern.formatDimension(myPattern.getTargetCmDimension('length'))}cm from brim"])
+crown_height_cm = math.floor(8 * (10/rowGauge))
+full_length_list_cm = myPattern.getTargetCmDimension('length')
+length_list_cm = [x - crown_height_cm for x in full_length_list_cm]
+myPattern.appendPattern([f"CO {myPattern.formatDimension(myPattern.getStitchDimension('head_circ'))} stitches using the long-tail method or another stretchy cast-on of your choice"])
+myPattern.appendPattern([f"P2, K2 every round until hat measures {myPattern.formatDimension(length_list_cm)}cm from CO brim"])
 myPattern.appendPattern(build_crown(myPattern.getStitchDimension('head_circ'), myPattern))
 
 #Print text pattern to terminal
@@ -109,6 +142,5 @@ for line in text:
     print(f"{line}")
 
 #Generate pattern pdf
-myTitle = "Brevity Toque"
-mySubtitle = "A bulky, knit hat to keep your entire family warm."
-myDocument = doc.Document(myPattern, myTitle, mySubtitle)
+logoPath = "logo1.jpg"
+myDocument = doc.Document(myPattern, pattern_data, logoPath)
